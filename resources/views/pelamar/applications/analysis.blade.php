@@ -26,21 +26,13 @@
     @endphp
 
     <div class="space-y-6">
-        <x-trace
-            :items="['Pelamar', 'Lamaran', $application->job->title]"
-            flow="PIPELINE: parse → preprocess → stem → match"
-        />
+        <!-- Pipeline text removed for pelamar UI -->
 
         <x-section-header
             eyebrow="Analisis NLP"
             title="Bedah CV — {{ $application->job->title }}"
             subtitle="CV diparse dari PDF menjadi teks mentah, dinormalisasi lewat case folding, tokenizing, dan stopword removal, di-stem lewat stemmer Bahasa Indonesia, lalu dicocokkan dengan bobot kata kunci formasi."
         >
-            <x-slot name="actions">
-                <x-button href="{{ route('pelamar.applications.show', $application) }}" variant="secondary" size="sm">
-                    ← Kembali ke Detail
-                </x-button>
-            </x-slot>
         </x-section-header>
 
         {{-- Ringkasan atas --}}
