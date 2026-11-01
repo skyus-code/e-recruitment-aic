@@ -206,7 +206,7 @@
                         <div class="flex items-center justify-between gap-3">
                             <span class="font-mono text-[10px] tracking-wider text-slate-400 uppercase">Aksi</span>
                             <x-button href="{{ route('pelamar.applications.analysis', $application) }}" variant="primary" size="sm" style="font-size: 0.7rem; min-width: auto;">
-                                Lihat Detail Hasil Parsing & Auto Screening
+                                Lihat Hasil Parsing & Auto Screening
                             </x-button>
                         </div>
                         @if ($statusFinal === \App\Enums\ApplicationStatusEnum::Hired)
