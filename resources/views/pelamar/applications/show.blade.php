@@ -203,6 +203,12 @@
                                 @endif
                             </span>
                         </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="font-mono text-[10px] tracking-wider text-slate-400 uppercase">Aksi</span>
+                            <x-button href="{{ route('pelamar.applications.analysis', $application) }}" variant="primary" size="sm" class="text-xs whitespace-nowrap">
+                                Lihat Detail Hasil Parsing & Auto Screening
+                            </x-button>
+                        </div>
                         @if ($statusFinal === \App\Enums\ApplicationStatusEnum::Hired)
                             <div class="flex items-center justify-between gap-3">
                                 <span class="font-mono text-[10px] tracking-wider text-slate-400 uppercase">Hasil</span>

@@ -304,7 +304,7 @@
                         </p>
 
                         <x-button href="{{ route('pelamar.applications.show', $application) }}" variant="primary" size="sm">
-                            Kembali ke Detail
+                            ← Kembali
                         </x-button>
                     </div>
                 @endif
