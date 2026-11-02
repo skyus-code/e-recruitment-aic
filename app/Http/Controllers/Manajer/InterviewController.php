@@ -151,7 +151,7 @@ class InterviewController extends Controller
     /**
      * Download lembar penilaian sebagai CSV.
      */
-    public function downloadAssessmentCsv(Application $application): \Illuminate\Http\Response
+    public function downloadAssessmentCsv(Application $application)
     {
         $application->load(['assessment.items', 'user.detailPerson', 'job.keywords']);
 
