@@ -147,4 +147,47 @@ class InterviewController extends Controller
             ->with('success', 'Penilaian pelamar berhasil disimpan.')
             ->with('message', 'Nilai akhir: '.number_format(round($finalScore, 2), 2).' · Batas lulus '.number_format(InterviewAssessment::PASSING_SCORE, 0).'.');
     }
+
+    /**
+     * Download lembar penilaian sebagai CSV.
+     */
+    public function downloadAssessmentCsv(Application $application): \Illuminate\Http\Response
+    {
+        $application->load(['assessment.items', 'user.detailPerson', 'job.keywords']);
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="recap-penilaian-'.$application->id.'.csv"',
+        ];
+
+        $callback = function() use ($application) {
+            $items = $application->assessment?->items->keyBy('aspect') ?? collect();
+
+            $std = new SplFileObject();
+            $std->setHeader(['No', 'Aspek', 'Bobot', 'Skor (1-5)', 'Nilai', 'Catatan']);
+            $std->setHeader(['', 'Kode', '(%', ')', '', '']);
+
+            $rowNum = 1;
+            foreach (InterviewAssessment::ASPECTS as $aspect) {
+                $item = $items->get($aspect['code']);
+                $score = $item?->score ?? null;
+                $value = $item?->value ?? null;
+                $note = $item?->note ?? '';
+
+                $std->createCell([
+                    $rowNum,
+                    $aspect['label'],
+                    rtrim(rtrim(number_format($aspect['weight'], 2, '.', ''), '0'), '.').'%',
+                    $score !== null ? $score : '-',
+                    $value !== null ? number_format($value, 2) : '-',
+                    $note,
+                ]);
+                $rowNum++;
+            }
+
+            return $std->fgetcsv();
+        };
+
+        return response()->streamDownload($callback, 'recap-penilaian-'.$application->id.'.csv', $headers);
+    }
 }

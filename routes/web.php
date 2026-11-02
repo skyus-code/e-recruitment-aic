@@ -139,6 +139,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/interviews/{application}', [ManajerInterviewController::class, 'show'])->name('interviews.show');
         Route::post('/interviews/{application}/assessment', [ManajerInterviewController::class, 'storeAssessment'])->name('interviews.assessment.store');
 
+    Route::get('/interviews/{application}/assessment-csv', [ManajerInterviewController::class, 'downloadAssessmentCsv'])->name('interviews.assessment.csv');
+
         Route::get('/dossier', [ManajerDossierController::class, 'index'])->name('dossier.index');
         Route::get('/dossier/{application}', [ManajerDossierController::class, 'show'])->name('dossier.show');
 

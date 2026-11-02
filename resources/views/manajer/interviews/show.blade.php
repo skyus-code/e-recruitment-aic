@@ -492,6 +492,7 @@
                         <span x-show="saved && !editing" class="text-sm font-semibold text-emerald-700">Penilaian Berhasil Tersimpan.</span>
                         <x-button type="button" variant="secondary" x-show="saved && !editing" x-on:click="editing = true">Edit Penilaian</x-button>
                         <span x-show="!saved || editing"><x-button type="submit" variant="primary">Simpan Penilaian</x-button></span>
+                        <x-button type="button" variant="success" id="recap-penilaian-btn">Recap Penilaian</span>
                     </div>
                 </form>
 
@@ -528,6 +529,12 @@
                     } else {
                         calculateAssessment();
                     }
+                </script>
+
+                <script>
+                    document.getElementById('recap-penilaian-btn').addEventListener('click', function() {
+                        window.location.href = '{{ route('interviews.assessment.csv', $application) }}';
+                    });
                 </script>
             </x-card>
         </div>
