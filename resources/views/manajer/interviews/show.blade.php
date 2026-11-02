@@ -533,7 +533,7 @@
 
                 <script>
                     document.getElementById('recap-penilaian-btn').addEventListener('click', function() {
-                        window.location.href = '{{ route('interviews.assessment.csv', $application) }}';
+                        window.location.href = '{{ route('manajer.interviews.assessment.csv', $application) }}';
                     });
                 </script>
             </x-card>
