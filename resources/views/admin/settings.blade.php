@@ -74,20 +74,30 @@
                     </div>
 
                     {{-- Form tambah --}}
-                    <form method="POST" action="{{ route('admin.settings.departments.store') }}" class="mt-5 grid gap-3 border-b border-dashed border-slate-200 pb-5 sm:grid-cols-2 lg:grid-cols-4 sm:items-end">
+                    <form method="POST" action="{{ route('admin.settings.departments.store') }}" class="mt-5 space-y-3 border-b border-dashed border-slate-200 pb-5" x-data="{ rows: [{ name: '', address: '', email: '' }], addRow() { this.rows.push({ name: '', address: '', email: '' }); this.$nextTick(() => { const inputs = this.$el.querySelectorAll('[data-department-name]'); inputs[inputs.length - 1]?.focus(); }); }, removeRow(index) { this.rows.splice(index, 1); if (!this.rows.length) { this.rows.push({ name: '', address: '', email: '' }); } } }">
                         @csrf
 
-                        <div class="sm:col-span-1">
-                            <x-input name="name" label="Nama Departemen" placeholder="cth: Tarbiyah" required />
-                        </div>
-                        <div>
-                            <x-input name="address" label="Alamat" placeholder="Alamat kantor" />
-                        </div>
-                        <div>
-                            <x-input type="email" name="email" label="Email" placeholder="departemen@ar-rahman.ac.id" />
-                        </div>
+                        <template x-for="(department, index) in rows" :key="index">
+                            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:items-end">
+                                <div>
+                                    <label class="label" :for="'department-name-' + index">Nama Departemen</label>
+                                    <input :id="'department-name-' + index" :name="'departments[' + index + '][name]'" x-model="department.name" x-on:keydown.enter.prevent="addRow()" data-department-name placeholder="cth: Tarbiyah" class="input">
+                                </div>
+                                <div>
+                                    <label class="label" :for="'department-address-' + index">Alamat</label>
+                                    <input :id="'department-address-' + index" :name="'departments[' + index + '][address]'" x-model="department.address" x-on:keydown.enter.prevent="addRow()" placeholder="Alamat kantor" class="input">
+                                </div>
+                                <div>
+                                    <label class="label" :for="'department-email-' + index">Email</label>
+                                    <input type="email" :id="'department-email-' + index" :name="'departments[' + index + '][email]'" x-model="department.email" x-on:keydown.enter.prevent="addRow()" placeholder="departemen@ar-rahman.ac.id" class="input">
+                                </div>
+                                <div class="flex items-end">
+                                    <x-button type="button" variant="danger" x-on:click="removeRow(index)">Hapus Baris</x-button>
+                                </div>
+                            </div>
+                        </template>
 
-                        <div class="shrink-0">
+                        <div class="flex justify-end">
                             <x-button type="submit" variant="primary" class="w-full">+ Tambah Departemen</x-button>
                         </div>
                     </form>
@@ -175,10 +185,10 @@
                 <span class="hidden font-mono text-[10px] tracking-wider text-slate-400 uppercase sm:block">TABLE · job_keywords</span>
             </div>
 
-            <form method="POST" action="{{ route('admin.keywords.store') }}" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:items-end">
+            <form method="POST" action="{{ route('admin.keywords.store') }}" class="mt-5 space-y-3" x-data="{ rows: [{ keyword: '', weight: 1, category: '' }], addRow() { this.rows.push({ keyword: '', weight: 1, category: '' }); this.$nextTick(() => { const inputs = this.$el.querySelectorAll('[data-keyword-input]'); inputs[inputs.length - 1]?.focus(); }); }, removeRow(index) { this.rows.splice(index, 1); if (!this.rows.length) { this.rows.push({ keyword: '', weight: 1, category: '' }); } } }">
                 @csrf
 
-                <div class="sm:col-span-2 lg:col-span-2">
+                <div>
                     <x-select
                         name="job_id"
                         label="Lowongan"
@@ -187,16 +197,26 @@
                         required
                     />
                 </div>
-                <div class="lg:col-span-1">
-                    <x-input name="keyword" label="Keyword" placeholder="cth: fikih" required />
-                </div>
-                <div class="lg:col-span-1">
-                    <x-input type="number" name="weight" label="Bobot (1–100)" :value="old('weight', 1)" required />
-                </div>
-                <div class="lg:col-span-1">
-                    <x-input name="category" label="Kategori" placeholder="cth: hard_skill" />
-                </div>
-                <div class="lg:col-span-1">
+                <template x-for="(keyword, index) in rows" :key="index">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
+                        <div>
+                            <label class="label" :for="'keyword-' + index">Keyword</label>
+                            <input :id="'keyword-' + index" :name="'keywords[' + index + '][keyword]'" x-model="keyword.keyword" x-on:keydown.enter.prevent="addRow()" data-keyword-input placeholder="cth: fikih" class="input">
+                        </div>
+                        <div>
+                            <label class="label" :for="'keyword-weight-' + index">Bobot (1–100)</label>
+                            <input type="number" min="1" max="100" :id="'keyword-weight-' + index" :name="'keywords[' + index + '][weight]'" x-model="keyword.weight" x-on:keydown.enter.prevent="addRow()" class="input">
+                        </div>
+                        <div>
+                            <label class="label" :for="'keyword-category-' + index">Kategori</label>
+                            <input :id="'keyword-category-' + index" :name="'keywords[' + index + '][category]'" x-model="keyword.category" x-on:keydown.enter.prevent="addRow()" placeholder="cth: hard_skill" class="input">
+                        </div>
+                        <div class="flex items-end">
+                            <x-button type="button" variant="danger" x-on:click="removeRow(index)">Hapus Baris</x-button>
+                        </div>
+                    </div>
+                </template>
+                <div class="flex justify-end">
                     <x-button type="submit" variant="primary" class="w-full">+ Simpan</x-button>
                 </div>
             </form>

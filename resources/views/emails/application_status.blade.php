@@ -10,7 +10,7 @@
     };
     $intro = match ($status) {
         'hired' => 'Kami dengan senang hati menginformasikan bahwa Anda dinyatakan DITERIMA pada proses rekrutmen Ar-Rahman Islamic Center. Tim kami akan menghubungi Anda untuk langkah selanjutnya.',
-        'passed' => 'Kabar baik! Berkas lamaran Anda dinyatakan LOLOS seleksi administrasi dan akan dilanjutkan ke tahap wawancara. Mohon pantau email dan dasbor Anda untuk jadwal wawancara.',
+        'passed' => 'Selamat! Anda Lolos Seleksi Administrasi. Berkas lamaran Anda telah dinyatakan lolos tahap seleksi administrasi dan akan dilanjutkan ke tahap wawancara. Informasi jadwal wawancara akan kami kirimkan melalui email dan dapat Anda pantau pada dasbor akun Anda.',
         'rejected' => 'Setelah melalui proses seleksi yang cermat, kami belum dapat melanjutkan lamaran Anda pada kesempatan kali ini. Kami sangat menghargai minat dan waktu yang Anda berikan.',
         default => 'Status lamaran Anda telah diperbarui. Silakan buka dasbor untuk informasi lebih lengkap.',
     };
@@ -70,7 +70,7 @@
                     {{-- Sapaan & isi --}}
                     <tr>
                         <td style="padding:16px 32px 0 32px; font-size:15px; line-height:1.7; color:#334155;">
-                            <p style="margin:0 0 14px 0;">Assalamu&rsquo;alaikum, <strong>{{ $userName }}</strong>,</p>
+                            <p style="margin:0 0 14px 0;">Halo, <strong>{{ $userName }}</strong>,</p>
                             <p style="margin:0 0 14px 0;">{{ $intro }}</p>
                             <p style="margin:0;">
                                 Anda dapat melihat detail lengkap proses lamaran Anda melalui dasbor pelamar.

@@ -9,6 +9,7 @@ use App\Models\JobPosting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -41,19 +42,49 @@ class SettingsController extends Controller
      */
     public function storeDepartment(Request $request): RedirectResponse
     {
+        $departmentRows = collect($request->input('departments', []))
+            ->filter(fn (array $department): bool => trim((string) ($department['name'] ?? '')) !== '')
+            ->values();
+        $request->merge(['departments' => $departmentRows->all()]);
+
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:departments,name'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'email' => ['nullable', 'email', 'max:255'],
-        ], [
-            'name.unique' => 'Nama departemen tersebut sudah terdaftar.',
-            'name.required' => 'Nama departemen wajib diisi.',
+            'departments' => ['nullable', 'array'],
+            'departments.*.name' => ['nullable', 'string', 'max:255'],
+            'departments.*.address' => ['nullable', 'string', 'max:500'],
+            'departments.*.email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        Department::create($validated);
+        $departments = collect($validated['departments'])
+            ->map(function (array $department): array {
+                return [
+                    'name' => trim((string) ($department['name'] ?? '')),
+                    'address' => $department['address'] ?? null,
+                    'email' => $department['email'] ?? null,
+                ];
+            })
+            ->filter(fn (array $department): bool => $department['name'] !== '')
+            ->unique(fn (array $department): string => mb_strtolower($department['name']))
+            ->values();
+
+        $existingNames = Department::pluck('name')
+            ->map(fn (string $name): string => mb_strtolower($name));
+
+        $departments = $departments
+            ->reject(fn (array $department): bool => $existingNames->contains(mb_strtolower($department['name'])))
+            ->map(fn (array $department): array => [
+                ...$department,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        if ($departments->isNotEmpty()) {
+            DB::transaction(fn () => Department::insert($departments->all()));
+        }
 
         return redirect()->route('admin.settings.index')
-            ->with('success', 'Departemen berhasil ditambahkan.');
+            ->with('success', $departments->isNotEmpty()
+                ? 'Departemen berhasil ditambahkan.'
+                : 'Tidak ada departemen baru untuk ditambahkan.');
     }
 
     /**

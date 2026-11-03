@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InterviewController extends Controller
 {
@@ -73,6 +74,7 @@ class InterviewController extends Controller
 
         $matchedWeight = (float) $application->scoreDetails->where('is_matched', true)->sum('matched_score');
         $totalWeight = (float) $application->job->keywords->sum('weight');
+        $assessmentSaved = $application->assessment !== null;
 
         $decided = in_array($application->status, [
             ApplicationStatusEnum::Hired,
@@ -85,6 +87,7 @@ class InterviewController extends Controller
             'matchedWeight',
             'totalWeight',
             'decided',
+            'assessmentSaved',
         ));
     }
 
@@ -151,43 +154,51 @@ class InterviewController extends Controller
     /**
      * Download lembar penilaian sebagai CSV.
      */
-    public function downloadAssessmentCsv(Application $application)
+    public function downloadAssessmentCsv(Application $application): StreamedResponse
     {
-        $application->load(['assessment.items', 'user.detailPerson', 'job.keywords']);
+        $application->load(['assessment.items', 'user', 'job']);
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="recap-penilaian-'.$application->id.'.csv"',
-        ];
+        $assessment = $application->assessment;
+        $user = $application->user;
+        $job = $application->job;
+        $filename = 'rekap-penilaian-'.$application->id.'.csv';
 
-        $callback = function() use ($application) {
-            $items = $application->assessment?->items->keyBy('aspect') ?? collect();
+        return response()->stream(function () use ($application, $assessment, $user, $job): void {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
 
-            $std = new SplFileObject();
-            $std->setHeader(['No', 'Aspek', 'Bobot', 'Skor (1-5)', 'Nilai', 'Catatan']);
-            $std->setHeader(['', 'Kode', '(%', ')', '', '']);
+            fputcsv($out, ['REKAP PENILAIAN PELAMAR']);
+            fputcsv($out, ['Nama Pelamar', $user->name]);
+            fputcsv($out, ['Formasi', $job->title]);
+            fputcsv($out, ['Nomor Lamaran', $application->id]);
+            fputcsv($out, ['Nama Penilai', $assessment?->assessor_name ?? '—']);
+            fputcsv($out, ['Tanggal Penilaian', $assessment?->assessed_at?->translatedFormat('d F Y') ?? '—']);
+            fputcsv($out, ['Nilai Akhir', $assessment?->final_score ?? '—']);
+            fputcsv($out, ['Keputusan', InterviewAssessment::decisionOptions()[$assessment?->decision ?? ''] ?? '—']);
+            fputcsv($out, ['Kesimpulan', preg_replace('/\s+/', ' ', (string) ($assessment?->conclusion ?? '—'))]);
+            fputcsv($out, []);
+            fputcsv($out, ['No', 'Aspek', 'Kode', 'Bobot (%)', 'Skor (1-5)', 'Nilai', 'Catatan']);
 
-            $rowNum = 1;
-            foreach (InterviewAssessment::ASPECTS as $aspect) {
+            $items = $assessment?->items->keyBy('aspect') ?? collect();
+
+            foreach (InterviewAssessment::ASPECTS as $index => $aspect) {
                 $item = $items->get($aspect['code']);
-                $score = $item?->score ?? null;
-                $value = $item?->value ?? null;
-                $note = $item?->note ?? '';
 
-                $std->createCell([
-                    $rowNum,
+                fputcsv($out, [
+                    $index + 1,
                     $aspect['label'],
-                    rtrim(rtrim(number_format($aspect['weight'], 2, '.', ''), '0'), '.').'%',
-                    $score !== null ? $score : '-',
-                    $value !== null ? number_format($value, 2) : '-',
-                    $note,
+                    $aspect['code'],
+                    rtrim(rtrim(number_format($aspect['weight'], 2, '.', ''), '0'), '.'),
+                    $item?->score ?? '—',
+                    $item?->value !== null ? number_format((float) $item->value, 2, '.', '') : '—',
+                    preg_replace('/\s+/', ' ', (string) ($item?->note ?? '')),
                 ]);
-                $rowNum++;
             }
 
-            return $std->fgetcsv();
-        };
-
-        return response()->streamDownload($callback, 'recap-penilaian-'.$application->id.'.csv', $headers);
+            fclose($out);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 }

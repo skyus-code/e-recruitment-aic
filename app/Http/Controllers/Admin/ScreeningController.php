@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
+use Throwable;
 
 class ScreeningController extends Controller
 {
@@ -155,11 +156,14 @@ class ScreeningController extends Controller
 
         $application->update(['status' => $status]);
 
-        // Kirim email pemberitahuan hasil seleksi berkas ke pelamar.
-        $applicant = $application->user;
-        Mail::to($applicant->email)->send(
-            new ApplicationStatusMail($applicant->name, $validated['decision']),
-        );
+        try {
+            $applicant = $application->user;
+            Mail::to($applicant->email)->send(
+                new ApplicationStatusMail($applicant->name, $validated['decision']),
+            );
+        } catch (Throwable $exception) {
+            report($exception);
+        }
 
         $message = $status === ApplicationStatusEnum::Passed
             ? 'Kandidat dinyatakan lolos seleksi berkas.'
